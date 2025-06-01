@@ -4,13 +4,22 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        return view('admin-dashboard');
-    }
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->with('error', 'Вы не авторизованы.');
+        }
+
+        return view('admin-dashboard', [
+            'username' => $user->Логин,
+            'role' => $user->Роль,
+        ]);    }
 
     public function getUsers()
     {

@@ -55,8 +55,8 @@ function loadUsers() {
                 <td>${user.is_locked == 1 ? 'Заблокирован' : 'Активен'}</td>
                 <td>
                     <div class="btn-group">
-                        <button class="btn btn-danger" onclick="deleteUser(${user.ID_Пользователи})">Удалить</button>
-                        <button class="btn" onclick="toggleLockUser(${user.ID_Пользователи}, ${user.is_locked})">
+                        <button class="btn btn-danger" onclick="deleteUser(${user.id})">Удалить</button>
+                        <button class="btn" onclick="toggleLockUser(${user.id}, ${user.is_locked})">
                             ${user.is_locked == 1 ? 'Разблокировать' : 'Заблокировать'}
                         </button>
                     </div>
