@@ -1,0 +1,26 @@
+Расчёт объёма в тонно-километрах (total_volume_ton_km)
+
+SELECT 
+    SUM(c.weight * rs.distance_km) AS total_volume_ton_km
+FROM orders o
+JOIN cargos c ON o.id_cargo = c.id_cargo
+JOIN route_sheets rs ON o.id_route_sheet = rs.id_route_sheet
+WHERE o.deleted_at IS NULL;
+
+
+Суммарные затраты на перевозку (total_cost)
+SELECT 
+    SUM(p.amount) AS total_cost
+FROM orders o
+JOIN payments p ON o.id_payment = p.id_payment
+WHERE o.deleted_at IS NULL AND p.deleted_at IS NULL;
+
+
+Средняя стоимость перевозки одного тонно-километра (avg_cost_per_ton_km)
+
+SELECT 
+    SUM(p.amount) / NULLIF(SUM(c.weight * rs.distance_km), 0) AS avg_cost_per_ton_km
+FROM orders o
+JOIN cargos c ON o.id_cargo = c.id_cargo
+JOIN route_sheets rs ON o.id_route_sheet = rs.id_route_sheet
+JOIN payments p ON o.id_payment = p.id_payment;
