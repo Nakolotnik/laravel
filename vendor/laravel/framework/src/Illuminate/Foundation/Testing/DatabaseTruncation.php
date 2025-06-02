@@ -4,9 +4,8 @@ namespace Illuminate\Foundation\Testing;
 
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\ConnectionInterface;
-use Illuminate\Database\Query\Expression;
-use Illuminate\Database\Schema\PostgresBuilder;
 use Illuminate\Foundation\Testing\Traits\CanConfigureMigrationCommands;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
 trait DatabaseTruncation
@@ -95,17 +94,17 @@ trait DatabaseTruncation
                 function (Collection $tables) use ($connection, $name) {
                     $exceptTables = $this->exceptTables($connection, $name);
 
-                    return $tables->filter(fn (array $table) => ! $this->tableExistsIn($table, $exceptTables));
+                    return $tables->reject(fn (array $table) => $this->tableExistsIn($table, $exceptTables));
                 }
             )
             ->each(function (array $table) use ($connection) {
-                $table = $connection->table(
-                    new Expression($table['schema'] ? $table['schema'].'.'.$table['name'] : $table['name'])
-                );
+                $connection->withoutTablePrefix(function ($connection) use ($table) {
+                    $table = $connection->table($table['schema_qualified_name']);
 
-                if ($table->exists()) {
-                    $table->truncate();
-                }
+                    if ($table->exists()) {
+                        $table->truncate();
+                    }
+                });
             });
 
         $connection->setEventDispatcher($dispatcher);
@@ -122,12 +121,7 @@ trait DatabaseTruncation
 
         $schema = $connection->getSchemaBuilder();
 
-        return static::$allTables[$name] = (new Collection($schema->getTables()))->when(
-            $schema instanceof PostgresBuilder ? $schema->getSchemas() : null,
-            fn (Collection $tables, array $schemas) => $tables->filter(
-                fn (array $table) => in_array($table['schema'], $schemas)
-            )
-        )->all();
+        return static::$allTables[$name] = Arr::from($schema->getTables($schema->getCurrentSchemaListing()));
     }
 
     /**
@@ -136,7 +130,7 @@ trait DatabaseTruncation
     protected function tableExistsIn(array $table, array $tables): bool
     {
         return $table['schema']
-            ? ! empty(array_intersect([$table['name'], $table['schema'].'.'.$table['name']], $tables))
+            ? ! empty(array_intersect([$table['name'], $table['schema_qualified_name']], $tables))
             : in_array($table['name'], $tables);
     }
 
@@ -148,7 +142,8 @@ trait DatabaseTruncation
     protected function connectionsToTruncate(): array
     {
         return property_exists($this, 'connectionsToTruncate')
-                    ? $this->connectionsToTruncate : [null];
+            ? $this->connectionsToTruncate
+            : [null];
     }
 
     /**

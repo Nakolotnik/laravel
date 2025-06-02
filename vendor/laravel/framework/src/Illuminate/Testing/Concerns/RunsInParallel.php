@@ -54,7 +54,6 @@ trait RunsInParallel
      *
      * @param  \ParaTest\Runners\PHPUnit\Options|\ParaTest\Options  $options
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return void
      */
     public function __construct($options, OutputInterface $output)
     {
@@ -147,7 +146,7 @@ trait RunsInParallel
             ? $this->options->processes
             : $this->options->processes();
 
-        (new Collection(range(1, $processes)))->each(function ($token) use ($callback) {
+        Collection::range(1, $processes)->each(function ($token) use ($callback) {
             tap($this->createApplication(), function ($app) use ($callback, $token) {
                 ParallelTesting::resolveTokenUsing(fn () => $token);
 

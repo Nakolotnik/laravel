@@ -92,12 +92,12 @@ class ApplicationBuilder
     /**
      * Register the core event service provider for the application.
      *
-     * @param  array|bool  $discover
+     * @param  iterable<int, string>|bool  $discover
      * @return $this
      */
-    public function withEvents(array|bool $discover = [])
+    public function withEvents(iterable|bool $discover = true)
     {
-        if (is_array($discover) && count($discover) > 0) {
+        if (is_iterable($discover)) {
             AppEventServiceProvider::setEventDiscoveryPaths($discover);
         }
 
@@ -161,6 +161,10 @@ class ApplicationBuilder
     {
         if (is_null($using) && (is_string($web) || is_array($web) || is_string($api) || is_array($api) || is_string($pages) || is_string($health)) || is_callable($then)) {
             $using = $this->buildRoutingCallback($web, $api, $pages, $health, $apiPrefix, $then);
+
+            if (is_string($health)) {
+                PreventRequestsDuringMaintenance::except($health);
+            }
         }
 
         AppRouteServiceProvider::loadRoutesUsing($using);
@@ -212,8 +216,6 @@ class ApplicationBuilder
             }
 
             if (is_string($health)) {
-                PreventRequestsDuringMaintenance::except($health);
-
                 Route::get($health, function () {
                     $exception = null;
 

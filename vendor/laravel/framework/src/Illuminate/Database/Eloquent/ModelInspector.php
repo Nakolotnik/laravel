@@ -47,7 +47,6 @@ class ModelInspector
      * Create a new model inspector instance.
      *
      * @param  \Illuminate\Contracts\Foundation\Application  $app
-     * @return void
      */
     public function __construct(Application $app)
     {
@@ -393,7 +392,7 @@ class ModelInspector
     {
         $attributeDefault = $model->getAttributes()[$column['name']] ?? null;
 
-        return enum_value($attributeDefault, $column['default']);
+        return enum_value($attributeDefault) ?? $column['default'];
     }
 
     /**

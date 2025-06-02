@@ -15,15 +15,15 @@ class Benchmark
      */
     public static function measure(Closure|array $benchmarkables, int $iterations = 1): array|float
     {
-        return (new Collection(Arr::wrap($benchmarkables)))->map(function ($callback) use ($iterations) {
-            return (new Collection(range(1, $iterations)))->map(function () use ($callback) {
+        return Collection::wrap($benchmarkables)->map(function ($callback) use ($iterations) {
+            return Collection::range(1, $iterations)->map(function () use ($callback) {
                 gc_collect_cycles();
 
                 $start = hrtime(true);
 
                 $callback();
 
-                return (hrtime(true) - $start) / 1000000;
+                return (hrtime(true) - $start) / 1_000_000;
             })->average();
         })->when(
             $benchmarkables instanceof Closure,
@@ -33,7 +33,7 @@ class Benchmark
     }
 
     /**
-     * Measure a callable once and return the duration and result.
+     * Measure a callable once and return the result and duration in milliseconds.
      *
      * @template TReturn of mixed
      *
@@ -48,7 +48,7 @@ class Benchmark
 
         $result = $callback();
 
-        return [$result, (hrtime(true) - $start) / 1000000];
+        return [$result, (hrtime(true) - $start) / 1_000_000];
     }
 
     /**

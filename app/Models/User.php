@@ -2,33 +2,34 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory;
+    use Notifiable, SoftDeletes;
 
-    protected $table = 'users';
-    protected $primaryKey = 'id';
+    protected $fillable = [
+        'login',
+        'password',
+        'role',
+        'id_employee',
+    ];
 
-    protected $fillable = ['ФИО', 'Роль', 'Логин', 'Пароль', 'failed_attempts', 'is_locked'];
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
-    protected $hidden = ['Пароль'];
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class, 'id_employee');
+    }
 
-    public $timestamps = false;
-
-    public function getAuthPassword()
-{
-    return $this->Пароль;
-}
-public function getAuthIdentifierName()
-{
-    return 'Логин'; // Имя столбца, используемого для идентификации
-}
-
-public function getAuthIdentifier()
-{
-    return $this->Логин; 
-}
+    public function isRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
 }

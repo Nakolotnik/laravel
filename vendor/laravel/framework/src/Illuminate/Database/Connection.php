@@ -208,7 +208,6 @@ class Connection implements ConnectionInterface
      * @param  string  $database
      * @param  string  $tablePrefix
      * @param  array  $config
-     * @return void
      */
     public function __construct($pdo, $database = '', $tablePrefix = '', array $config = [])
     {
@@ -248,9 +247,7 @@ class Connection implements ConnectionInterface
      */
     protected function getDefaultQueryGrammar()
     {
-        ($grammar = new QueryGrammar)->setConnection($this);
-
-        return $grammar;
+        return new QueryGrammar($this);
     }
 
     /**
@@ -467,7 +464,7 @@ class Connection implements ConnectionInterface
             // mode and prepare the bindings for the query. Once that's done we will be
             // ready to execute the query against the database and return the cursor.
             $statement = $this->prepared($this->getPdoForSelect($useReadPdo)
-                              ->prepare($query));
+                ->prepare($query));
 
             $this->bindValues(
                 $statement, $this->prepareBindings($bindings)
@@ -1626,24 +1623,26 @@ class Connection implements ConnectionInterface
     {
         $this->tablePrefix = $prefix;
 
-        $this->getQueryGrammar()->setTablePrefix($prefix);
-
         return $this;
     }
 
     /**
-     * Set the table prefix and return the grammar.
+     * Execute the given callback without table prefix.
      *
-     * @template TGrammar of \Illuminate\Database\Grammar
-     *
-     * @param  TGrammar  $grammar
-     * @return TGrammar
+     * @param  \Closure  $callback
+     * @return mixed
      */
-    public function withTablePrefix(Grammar $grammar)
+    public function withoutTablePrefix(Closure $callback): mixed
     {
-        $grammar->setTablePrefix($this->tablePrefix);
+        $tablePrefix = $this->getTablePrefix();
 
-        return $grammar;
+        $this->setTablePrefix('');
+
+        try {
+            return $callback($this);
+        } finally {
+            $this->setTablePrefix($tablePrefix);
+        }
     }
 
     /**
