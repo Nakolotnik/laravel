@@ -1,0 +1,16 @@
+SELECT COUNT(CASE WHEN RoomStatus = 'sanarr' THEN 1 END)*100.0/COUNT(*) AS 'percent'
+FROM Rooms
+
+SELECT 
+    SUM(Revenue) / COUNT(CASE WHEN Status = 'occupied' THEN 1 END) AS 'ADR'
+FROM 
+    Rooms
+WHERE 
+    Date BETWEEN '2023-01-01' AND '2023-01-31';
+
+SELECT 
+    (SUM(Revenue) / COUNT(*)) AS 'RevPAR'
+FROM 
+    Rooms
+WHERE 
+    Date BETWEEN '2023-01-01' AND '2023-01-31';
